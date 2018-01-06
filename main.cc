@@ -6,7 +6,5 @@ using bigint::BigInt;
 
 int main()
 {
-    BigInt a("10010101010100101");
-    BigInt b("10100101");
-    cout << a - b << endl;
+    cout << BigInt("1000") + BigInt("0111") - BigInt("0101") + BigInt("-1") << endl;
 }

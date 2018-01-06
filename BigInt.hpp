@@ -5,19 +5,19 @@ using namespace std;
 
 namespace bigint
 {
-
-inline int ctoi(char c) { return c - '0'; }
-inline char itoc(int n) { return n + '0'; }
-inline size_t min(size_t a, size_t b) { return (a < b ? a : b); }
-inline size_t max(size_t a, size_t b) { return (a > b ? a : b); }
     
 class BigInt
 {
 public:
     friend ostream& operator<<(ostream& out, const BigInt& n);
     inline BigInt() { v = {0}; };
-    BigInt(const vector<bool>& v_);
+    BigInt(const vector<bool>& v_, uint8_t sign_);
     BigInt(const string& str, bool reversed);
+    bool operator<(const BigInt& n) const;
+    bool operator>(const BigInt& n) const;
+    bool operator<=(const BigInt& n) const;
+    bool operator>=(const BigInt& n) const;
+    bool operator==(const BigInt& n) const;
     BigInt operator+(const BigInt& n) const;
     BigInt operator-(const BigInt& n) const;
     // BigInt operator*(const BigInt& n) const;
@@ -26,13 +26,21 @@ public:
     // inline BigInt operator*=(const BigInt& n) { *this = *this * n; return *this; };
     bool bit(size_t index) const;
 
+    vector<bool> v; // Vector of bits storing digits of the number
+    uint8_t sign = +1;
 private:
     void print(ostream& out) const;
     void remove_leading_zeros();
     // BigInt digit_mul(const uint8_t n, const size_t right_zeros) const; // Mutliplicate BigInt by integer (of one digit)
-
-    vector<bool> v; // Vector of bits storing digits of the number
 };
+
+inline int ctoi(char c) { return c - '0'; }
+inline char itoc(int n) { return n + '0'; }
+inline size_t min(size_t a, size_t b) { return (a < b ? a : b); }
+inline size_t max(size_t a, size_t b) { return (a > b ? a : b); }
+BigInt binary_addition(const BigInt& n, const BigInt& k);
+BigInt binary_subtraction(const BigInt& n, const BigInt& k);
+
 
 ostream& operator<<(ostream& out, const BigInt& n)
 {
@@ -45,13 +53,22 @@ BigInt::BigInt(const string& s, bool reversed = false)
     size_t size = s.size();
     if (size > 0) {
         v = vector<bool>(size);
+        size_t i = 0;
         if (reversed) {
-            for (int i = 0; i < size; ++i) {
+            if (s[0] == '-') {
+                ++i;
+                sign = -1;
+            }
+            for (; i < size; ++i) {
                 v[i] = ctoi(s[i]);
             }
         }
         else {
-            for (int i = 0; i < size; ++i) {
+            if (s[s.size() - 1] == '-') {
+                ++i;
+                sign = -1;
+            }
+            for (; i < size; ++i) {
                 v[i] = ctoi(s[size - i - 1]);
             }
         }
@@ -62,10 +79,11 @@ BigInt::BigInt(const string& s, bool reversed = false)
     }
 }
 
-BigInt::BigInt(const vector<bool>& v_) 
+BigInt::BigInt(const vector<bool>& v_, uint8_t sign_ = +1)
 { 
     v = v_; 
-    remove_leading_zeros(); 
+    sign = sign_;
+    remove_leading_zeros();
 }
 
 void BigInt::print(ostream& out) const
@@ -75,32 +93,94 @@ void BigInt::print(ostream& out) const
     }
 }
 
+bool BigInt::operator<(const BigInt& n) const
+{
+    if (sign == -1 and n.sign == +1) return true;
+    if (sign == +1 and n.sign == -1) return false;
+    if (v.size() < n.v.size()) return (sign == +1 ? true : false);
+    if (v.size() > n.v.size()) return (sign == +1 ? false : true);
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (v[i] > n.v[i]) return (sign == +1 ? false : true);
+        if (v[i] < n.v[i]) return (sign == +1 ? true : false);
+    }
+    return false; 
+}
+
+bool BigInt::operator>(const BigInt& n) const
+{
+    if (sign == -1 and n.sign == +1) return false;
+    if (sign == +1 and n.sign == -1) return true;
+    if (v.size() < n.v.size()) return (sign == +1 ? false : true);
+    if (v.size() > n.v.size()) return (sign == +1 ? true : false);
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (v[i] > n.v[i]) return (sign == +1 ? true : false);
+        if (v[i] < n.v[i]) return (sign == +1 ? false : true);
+    }
+    return false; 
+}
+
+bool BigInt::operator<=(const BigInt& n) const
+{
+    return *this < n or *this == n; 
+}
+
+bool BigInt::operator>=(const BigInt& n) const
+{
+    return *this > n or *this == n; 
+}
+
+bool BigInt::operator==(const BigInt& n) const
+{
+    if (sign != n.sign) return false;
+    if (v.size() < n.v.size()) return false;
+    if (v.size() > n.v.size()) return false;
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (v[i] > n.v[i]) return false;
+        if (v[i] < n.v[i]) return false;
+    }
+    return true; 
+}
+
 // Details: https://en.wikipedia.org/wiki/Adder_(electronics)#Full_adder
 BigInt BigInt::operator+(const BigInt& n) const
 {
-    size_t max_size = max(v.size(), n.v.size());
-    vector<bool> addition(max_size + 1);
-    bool c = 0; // carry
-    for (size_t i = 0; i <= max_size; ++i) {
-        bool x = bit(i), y = n.bit(i);
-        addition[i] = (x ^ y) ^ c;
-        c = (x & y) | (x & c) | (y & c);
+    if (sign == n.sign) {
+        BigInt r = binary_addition(*this, n);
+        r.sign = sign;
+        return r;
     }
-    return BigInt(addition);
+    else {
+        if (sign == +1 and n.sign == -1) {
+            return *this - n;
+        }
+        else {
+            return n - *this;
+        }
+    }
+    
 }
 
 // Details: https://en.wikipedia.org/wiki/Subtractor#Full_Subtractor
 BigInt BigInt::operator-(const BigInt& n) const
 {
-    size_t max_size = max(v.size(), n.v.size());
-    vector<bool> subtraction(max_size + 1);
-    bool b = 0; // borrow
-    for (size_t i = 0; i <= max_size; ++i) {
-        bool x = bit(i), y = n.bit(i);
-        subtraction[i] = (x ^ y) ^ b;
-        b = (!x & y) | ( (x ^ y) & b );
+    uint8_t n_sign = -1 * n.sign;
+    if (sign == n_sign) {
+        return *this + n;
     }
-    return BigInt(subtraction);
+    else {
+        if (*this > n) { // sign(*this) = +1, sign(n) = -1
+            // If n > this: return this - n
+            BigInt r = binary_subtraction(*this, n);
+            r.sign = +1;
+            return r;
+        }
+        else { // sign(*this) = -1, sign(n) = +1
+            // If n > this: return -(n - this)
+            BigInt r = binary_subtraction(n, *this);
+            r.sign = -1;
+            return r;
+        }
+    }
 }
 
 /*
@@ -127,8 +207,7 @@ BigInt BigInt::operator*(const BigInt& n) const
 
 bool BigInt::bit(size_t index) const
 {
-    if (index >= v.size())
-        return 0;
+    if (index >= v.size()) return 0;
     return v[index];
 }
 
@@ -174,5 +253,32 @@ BigInt BigInt::digit_mul(const uint8_t n, const size_t right_zeros) const
     return BigInt(result);
 }
 */
+
+
+BigInt binary_addition(const BigInt& n, const BigInt& k)
+{
+    size_t max_size = max(n.v.size(), k.v.size());
+    vector<bool> addition(max_size + 1);
+    bool c = 0; // carry
+    for (size_t i = 0; i <= max_size; ++i) {
+        bool x = n.bit(i), y = k.bit(i);
+        addition[i] = (x ^ y) ^ c;
+        c = (x & y) | (x & c) | (y & c);
+    }
+    return BigInt(addition);
+}
+
+BigInt binary_subtraction(const BigInt& n, const BigInt& k)
+{
+    size_t max_size = max(n.v.size(), k.v.size());
+    vector<bool> subtraction(max_size + 1);
+    bool b = 0; // borrow
+    for (size_t i = 0; i <= max_size; ++i) {
+        bool x = n.bit(i), y = k.bit(i);
+        subtraction[i] = (x ^ y) ^ b;
+        b = (!x & y) | ( (x ^ y) & b );
+    }
+    return BigInt(subtraction);
+}
 
 };
