@@ -6,11 +6,7 @@ using bigint::BigInt;
 
 int main()
 {
-    BigInt sum("1");
-    string s;
-    while (getline(cin, s)) {
-        BigInt n(s);
-        sum *= n;
-    }
-    cout << sum << endl;
+    BigInt a("0101");
+    BigInt b("1010");
+    cout << a + b << endl;
 }
