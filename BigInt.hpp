@@ -19,8 +19,10 @@ public:
     BigInt(const vector<bool>& v_);
     BigInt(const string& str, bool reversed);
     BigInt operator+(const BigInt& n) const;
+    BigInt operator-(const BigInt& n) const;
     // BigInt operator*(const BigInt& n) const;
     inline BigInt operator+=(const BigInt& n) { *this = *this + n; return *this; };
+    inline BigInt operator-=(const BigInt& n) { *this = *this - n; return *this; };
     // inline BigInt operator*=(const BigInt& n) { *this = *this * n; return *this; };
     bool bit(size_t index) const;
 
@@ -73,16 +75,32 @@ void BigInt::print(ostream& out) const
     }
 }
 
+// Details: https://en.wikipedia.org/wiki/Adder_(electronics)#Full_adder
 BigInt BigInt::operator+(const BigInt& n) const
 {
     size_t max_size = max(v.size(), n.v.size());
     vector<bool> addition(max_size + 1);
-    bool carry = 0;
+    bool c = 0; // carry
     for (size_t i = 0; i <= max_size; ++i) {
-        addition[i] = (bit(i) ^ n.bit(i)) ^ carry;
-        carry = (bit(i) & n.bit(i)) | (bit(i) & carry) | (n.bit(i) & carry);
+        bool x = bit(i), y = n.bit(i);
+        addition[i] = (x ^ y) ^ c;
+        c = (x & y) | (x & c) | (y & c);
     }
     return BigInt(addition);
+}
+
+// Details: https://en.wikipedia.org/wiki/Subtractor#Full_Subtractor
+BigInt BigInt::operator-(const BigInt& n) const
+{
+    size_t max_size = max(v.size(), n.v.size());
+    vector<bool> subtraction(max_size + 1);
+    bool b = 0; // borrow
+    for (size_t i = 0; i <= max_size; ++i) {
+        bool x = bit(i), y = n.bit(i);
+        subtraction[i] = (x ^ y) ^ b;
+        b = (!x & y) | ( (x ^ y) & b );
+    }
+    return BigInt(subtraction);
 }
 
 /*
