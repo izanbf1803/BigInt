@@ -20,9 +20,11 @@ public:
     bool operator==(const BigInt& n) const;
     BigInt operator+(const BigInt& n) const;
     BigInt operator-(const BigInt& n) const;
+    BigInt operator%(const BigInt& n) const;
     // BigInt operator*(const BigInt& n) const;
     inline BigInt operator+=(const BigInt& n) { *this = *this + n; return *this; };
     inline BigInt operator-=(const BigInt& n) { *this = *this - n; return *this; };
+    inline BigInt operator%=(const BigInt& n) { *this = *this % n; return *this; };
     // inline BigInt operator*=(const BigInt& n) { *this = *this * n; return *this; };
     bool bit(size_t index) const;
 
@@ -38,6 +40,7 @@ inline int ctoi(char c) { return c - '0'; }
 inline char itoc(int n) { return n + '0'; }
 inline size_t min(size_t a, size_t b) { return (a < b ? a : b); }
 inline size_t max(size_t a, size_t b) { return (a > b ? a : b); }
+inline BigInt abs(BigInt n) { n.sign = +1; return n; };
 BigInt binary_addition(const BigInt& n, const BigInt& k);
 BigInt binary_subtraction(const BigInt& n, const BigInt& k);
 
@@ -126,7 +129,7 @@ bool BigInt::operator<=(const BigInt& n) const
 
 bool BigInt::operator>=(const BigInt& n) const
 {
-    return *this > n or *this == n; 
+    return *this > n or *this == n;
 }
 
 bool BigInt::operator==(const BigInt& n) const
@@ -181,6 +184,21 @@ BigInt BigInt::operator-(const BigInt& n) const
             return r;
         }
     }
+}
+
+BigInt BigInt::operator%(const BigInt& n) const
+{
+    BigInt r = *this;
+    r.sign = sign;
+    uint8_t r_original_sign = sign;
+    while (r >= n) {
+        cout << r << "-" << n << " = " << r-n << endl;
+        r -= n;
+    }
+    if (r_original_sign == -1) {
+        r = n - r;
+    }
+    return r;
 }
 
 /*
@@ -276,7 +294,7 @@ BigInt binary_subtraction(const BigInt& n, const BigInt& k)
     for (size_t i = 0; i <= max_size; ++i) {
         bool x = n.bit(i), y = k.bit(i);
         subtraction[i] = (x ^ y) ^ b;
-        b = (!x & y) | ( (x ^ y) & b );
+        b = (!x & y) | ( !(x ^ y) & b );
     }
     return BigInt(subtraction);
 }
