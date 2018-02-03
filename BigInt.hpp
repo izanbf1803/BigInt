@@ -154,7 +154,6 @@ bool BigInt::operator==(const BigInt& n) const
     return true; 
 }
 
-// Details: https://en.wikipedia.org/wiki/Adder_(electronics)#Full_adder
 BigInt BigInt::operator+(const BigInt& n) const
 {
     if (sign == n.sign) {
@@ -177,7 +176,6 @@ BigInt BigInt::operator+(const BigInt& n) const
     
 }
 
-// Details: https://en.wikipedia.org/wiki/Subtractor#Full_Subtractor
 BigInt BigInt::operator-(const BigInt& n) const
 {
     if (sign != n.sign) {
@@ -266,6 +264,7 @@ void BigInt::remove_leading_zeros()
     v.resize(size - count);
 }
 
+// Details: https://en.wikipedia.org/wiki/Adder_(electronics)#Full_adder
 BigInt binary_addition(const BigInt& n, const BigInt& k)
 {
     size_t max_size = max(n.v.size(), k.v.size());
@@ -279,6 +278,7 @@ BigInt binary_addition(const BigInt& n, const BigInt& k)
     return BigInt(addition);
 }
 
+// Details: https://en.wikipedia.org/wiki/Subtractor#Full_Subtractor
 BigInt binary_subtraction(const BigInt& n, const BigInt& k)
 {
     size_t max_size = max(n.v.size(), k.v.size());
