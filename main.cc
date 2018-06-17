@@ -17,4 +17,5 @@ int main()
     cout << "E " << BigInt("-11000111", 2).int64() << endl;
     cout << "F " << (BigInt("111", 2) << 10) << endl;
     cout << "G " << BigInt(9999) << endl;
+    cout << "H " << BigInt(276).mul(BigInt(451)) << endl;
 }

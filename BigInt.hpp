@@ -39,6 +39,7 @@ public:
     // inline BigInt operator*=(const BigInt& n) { *this = *this * n; return *this; };
     bool bit(size_t index) const;
     pair<BigInt,BigInt> div(const BigInt& n) const;
+    BigInt mul(const BigInt& n) const;
     string str() const;
     int64_t int64() const;
 
@@ -264,6 +265,21 @@ BigInt BigInt::operator>>(const BigInt& n) const
     return r;
 }
 
+BigInt BigInt::mul(const BigInt& n) const
+{
+    vector<bool> r(v_.size() + n.v_.size(), 0);
+    for (int i = 0; i < v_.size(); ++i) {
+        int8_t carry = 0;
+        for (int j = 0; j < n.v_.size(); ++j) {
+            int8_t p = carry + (v_[i] & n.v_[j]) + r[i+j];
+            carry = p >> 1;
+            r[i+j] = p & 1;
+        }
+        r[i+n.v_.size()] = r[i+n.v_.size()] | carry;
+    }
+    return BigInt(r, sign_ * n.sign_);
+}
+
 pair<BigInt,BigInt> BigInt::div(const BigInt& n) const
 {
     BigInt d = n;
@@ -279,6 +295,24 @@ pair<BigInt,BigInt> BigInt::div(const BigInt& n) const
         q.sign_ = -1;
     }
     return make_pair(q, r);
+
+    // *this / n
+
+    // BigInt quotient = BI[0];
+    // BigInt power(v_.size() - n.v_.size());
+    // BigInt k = n * (BI[1] << power);
+
+    //     while(*this > n) {
+    //         if(a >= b) {
+    //             a = a-b;
+    //             quotient = quotient*2+1;
+    //             b = b/2;
+    //         } else {
+    //             quotient = quotient*2;
+    //             b = b/2;
+    //         }
+    //     }
+    //     System.out.println(quotient);
 }
 
 int64_t BigInt::int64() const
