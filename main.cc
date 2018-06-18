@@ -15,7 +15,10 @@ int main()
     cout << "C " << (BigInt("1100100", 2) - BigInt("1010", 2)) << endl;
     cout << "D " << (BigInt("11000111", 2) % BigInt("1010", 2)) << endl;
     cout << "E " << BigInt("-11000111", 2).int64() << endl;
-    cout << "F " << (BigInt("111", 2) << 10) << endl;
+    cout << "F " << (BigInt("111", 2) << 100) << endl;
     cout << "G " << BigInt(9999) << endl;
-    cout << "H " << BigInt(276).mul(BigInt(451)) << endl;
+    cout << "H " << BigInt(2354226).mul(BigInt(3463636)) << endl;
+    cout << "I " << BigInt(91424562).div(BigInt(3567)).first << endl;
+    cout << "J " << BigInt(91424562).div(BigInt(3567)).second << endl;
+    cout << "K " << BigInt(123).pow(BigInt(80)) << endl;
 }

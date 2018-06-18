@@ -29,6 +29,8 @@ public:
     BigInt operator/(const BigInt& n) const;
     BigInt operator<<(const BigInt& n) const;
     BigInt operator>>(const BigInt& n) const;
+    BigInt operator<<(int64_t n) const;
+    BigInt operator>>(int64_t n) const;
     // BigInt operator*(const BigInt& n) const;
     inline BigInt operator+=(const BigInt& n) { *this = *this + n; return *this; };
     inline BigInt operator-=(const BigInt& n) { *this = *this - n; return *this; };
@@ -36,10 +38,15 @@ public:
     inline BigInt operator/=(const BigInt& n) { *this = *this / n; return *this; };
     inline BigInt operator<<=(const BigInt& n) { *this = *this << n; return *this; };
     inline BigInt operator>>=(const BigInt& n) { *this = *this >> n; return *this; };
+    inline BigInt operator<<=(int64_t n) { *this = *this << n; return *this; };
+    inline BigInt operator>>=(int64_t n) { *this = *this >> n; return *this; };
     // inline BigInt operator*=(const BigInt& n) { *this = *this * n; return *this; };
+    void remove_leading_zeros();
     bool bit(size_t index) const;
     pair<BigInt,BigInt> div(const BigInt& n) const;
     BigInt mul(const BigInt& n) const;
+    inline BigInt pow(const BigInt& n) const { return this->pow(n.int64()); };
+    BigInt pow(int64_t n) const;
     string str() const;
     int64_t int64() const;
 
@@ -47,7 +54,6 @@ public:
     int8_t sign_ = +1;
 private:
     void print(ostream& out) const;
-    void remove_leading_zeros();
 };
 
 const vector<vector<bool>> BI_v = { {0}, {1}, {0, 1}, {1, 1}, {0, 0, 1}, {1, 0, 1}, {0, 1, 1}, {1, 1, 1}, {0, 0, 0, 1}, {1, 0, 0, 1}, {0, 1, 0, 1} };
@@ -79,6 +85,7 @@ ostream& operator<<(ostream& out, const BigInt& n)
 
 BigInt::BigInt(int64_t n)
 {
+    if (n < 0) sign_ = -1;
     n = abs(n);
     size_t size = 0;
     int64_t k = n;
@@ -217,7 +224,7 @@ BigInt BigInt::operator-(const BigInt& n) const
     }
     else {
         if (*this >= n) { // sign_(*this) = +1, sign_(n) = -1
-            // If n > this: return this - n
+            // If this >= n: return this - n
             BigInt r = binary_subtraction(*this, n);
             r.sign_ = +1;
             return r;
@@ -243,26 +250,31 @@ BigInt BigInt::operator/(const BigInt& n) const
     return div(n).first;
 }
 
-BigInt BigInt::operator<<(const BigInt& n) const 
+BigInt BigInt::operator<<(int64_t n) const 
 {
     BigInt r = *this;
-    int64_t k = abs(n.int64());
-    while (k > 0) {
-        --k;
-        r.v_.insert(r.v_.begin(), 0);
-    }
+    r.v_.insert(r.v_.begin(), abs(n), 0);
+    r.remove_leading_zeros();
     return r;
+}
+
+BigInt BigInt::operator>>(int64_t n) const
+{
+    if (abs(n) >= this->v_.size()) return BI[0];
+
+    BigInt r = *this;
+    r.v_.erase(r.v_.begin(), r.v_.begin() + abs(n));
+    return r;
+}
+
+BigInt BigInt::operator<<(const BigInt& n) const 
+{
+    return *this << n.int64();
 }
 
 BigInt BigInt::operator>>(const BigInt& n) const
 {
-    BigInt r = *this;
-    int64_t k = abs(n.int64());
-    while (k > 0) {
-        --k;
-        r.v_.erase(r.v_.begin());
-    }
-    return r;
+    return *this >> n.int64(); 
 }
 
 BigInt BigInt::mul(const BigInt& n) const
@@ -277,42 +289,45 @@ BigInt BigInt::mul(const BigInt& n) const
         }
         r[i+n.v_.size()] = r[i+n.v_.size()] | carry;
     }
-    return BigInt(r, sign_ * n.sign_);
+    BigInt x(r, sign_ * n.sign_);
+    x.remove_leading_zeros();
+    return x;
 }
 
+BigInt BigInt::pow(int64_t n) const
+{
+    assert( n >= 0 );
+    if (n == 0) return BI[1];
+    if (n == 1) return *this;
+    BigInt x2 = this->mul(*this);
+    if (n % 2 == 0) return x2.pow(n/2);
+    return this->mul(x2.pow((n-1)/2));
+}
+
+// positive division:
 pair<BigInt,BigInt> BigInt::div(const BigInt& n) const
 {
-    BigInt d = n;
-    BigInt r = *this;
     BigInt q = BI[0];
+    BigInt r = *this;
+    BigInt d = n;
     r.sign_ = d.sign_ = +1;
-    int8_t result_sign_ = this->sign_ * n.sign_;
-    while (r >= d) {
-        r -= d;
-        q += BI[1];
+    int64_t k = 0;
+    while (d <= r) {
+        ++k;
+        d = d << 1;
     }
-    if (result_sign_ == -1) {
-        q.sign_ = -1;
+    while (k-- > 0) {
+        d = d >> 1;
+        if (d <= r) {
+            r = r - d;
+            q = (q << 1) + 1;
+        }
+        else {
+            q = q << 1;
+        }
     }
+
     return make_pair(q, r);
-
-    // *this / n
-
-    // BigInt quotient = BI[0];
-    // BigInt power(v_.size() - n.v_.size());
-    // BigInt k = n * (BI[1] << power);
-
-    //     while(*this > n) {
-    //         if(a >= b) {
-    //             a = a-b;
-    //             quotient = quotient*2+1;
-    //             b = b/2;
-    //         } else {
-    //             quotient = quotient*2;
-    //             b = b/2;
-    //         }
-    //     }
-    //     System.out.println(quotient);
 }
 
 int64_t BigInt::int64() const
@@ -321,7 +336,7 @@ int64_t BigInt::int64() const
     size_t size = v_.size();
     int64_t r = v_[size-1];
     for (size_t i = 1; i < v_.size(); ++i) {
-        r *= 2;
+        r <<= 1;
         r += v_[size-1-i];
     }
     r *= sign_;
@@ -334,14 +349,10 @@ string BigInt::str() const
     res.reserve(v_.size()/3);
     BigInt n = *this;
     n.sign_ = +1;
+    if (n == BI[0]) return "0";
     while (n > BI[0]) {
         pair<BigInt, BigInt> q_r = n.div(BI[10]);
-        for (int i = 0; i < 10; ++i) {
-            if (q_r.second == BI[i]) {
-                res += '0' + i;
-                break;
-            }
-        }
+        res += '0' + q_r.second.int64();
         n = q_r.first;
     }
     if (this->sign_ == -1) res += '-';
