@@ -6,19 +6,16 @@ using bigint::BigInt;
 
 int main()
 {
-    cout << "A " << (BigInt("1000", 2) + BigInt("0111", 2) - BigInt("0101", 2) + BigInt("-1", 2)) << endl;
-    cout << (BigInt("11", 2) > BigInt("11", 2)) << endl;
-    cout << (BigInt("11", 2) >= BigInt("11", 2)) << endl;
-    cout << (BigInt("11", 2) == BigInt("11", 2)) << endl;
-    cout << (BigInt("10", 2) < BigInt("10", 2)) << endl;
-    cout << "B " << (BigInt("101000111", 2) - BigInt("1010", 2)) << endl;
-    cout << "C " << (BigInt("1100100", 2) - BigInt("1010", 2)) << endl;
-    cout << "D " << (BigInt("11000111", 2) % BigInt("1010", 2)) << endl;
-    cout << "E " << BigInt("-11000111", 2).int64() << endl;
-    cout << "F " << (BigInt("111", 2) << 100) << endl;
-    cout << "G " << BigInt(9999) << endl;
-    cout << "H " << BigInt(2354226).mul(BigInt(3463636)) << endl;
-    cout << "I " << BigInt(91424562).div(BigInt(3567)).first << endl;
-    cout << "J " << BigInt(91424562).div(BigInt(3567)).second << endl;
-    cout << "K " << BigInt(123).pow(BigInt(80)) << endl;
+    BigInt x = BigInt("12345678910") + BigInt("-82373284723847");
+    cout << x << " " << x/2 << endl;
+    cout << BigInt("1233235252533255354674438888") / BigInt("-7") << endl;
+    cout << BigInt("1233235252533255354674438888") / -7 << endl;
+    cout << BigInt("23322") % BigInt("1") << endl;
+    cout << BigInt("-12345678910") + BigInt("82373284723847") << endl;
+    cout << BigInt("-12345678910") + BigInt("-82373284723847") << endl;
+    cout << BigInt("12345678910") + BigInt("-82373284723847") << endl;
+    cout << BigInt("-12345678910") - BigInt("82373284723847") << endl;
+    cout << BigInt("-12345678910") - BigInt("-82373284723847") << endl;
+    cout << BigInt("12345678910") - BigInt("-82373284723847") << endl;
+    cout << BigInt("123").pow(BigInt("456")) << endl;
 }
