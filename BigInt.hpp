@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cassert>
 #include <chrono>
+#include <complex>
 using namespace std;
 
 namespace bigint
@@ -11,8 +12,8 @@ namespace bigint
 #define D(x) cerr << #x << " = " << (x) << ", "
 using DTYPE = int;
 
-const int BASE = 1000000000;
-const int LOGB = 9;
+const DTYPE BASE = 1000000000;
+const DTYPE LOGB = 9;
 
 class BigInt
 {
@@ -21,7 +22,7 @@ public:
     friend istream& operator>>(istream& in, BigInt& n);
     inline BigInt() { v_ = {0}; };
     template<typename T>
-        BigInt(T value) { *this = value; };
+        BigInt(T value) { *this = value; remove_leading_zeros(); };
     BigInt(string s);
     template<typename T>
         inline BigInt& operator=(T new_val) { *this = BigInt(to_string(new_val)); return *this; };
@@ -71,6 +72,7 @@ inline DTYPE max(DTYPE a, DTYPE b) { return (a > b ? a : b); }
 inline BigInt abs(BigInt n) { n.sign_ = +1; return n; };
 inline DTYPE abs(DTYPE n) { return (n < 0 ? -n : n);  };
 inline int8_t sign(int64_t n) { return (n < 0 ? -1 : +1); };
+
 BigInt raw_addition(BigInt a, const BigInt& b);
 BigInt raw_subtraction(BigInt a, const BigInt& b);
 
@@ -96,12 +98,12 @@ BigInt::BigInt(string s)
         s.erase(s.begin());
         sign_ = -1;
     }
-    for (int i = (int)s.length(); i > 0; i -= 9) {
-        if (i < 9) {
+    for (int i = (int)s.length(); i > 0; i -= LOGB) {
+        if (i < LOGB) {
             v_.push_back(atoi(s.substr(0, i).c_str()));
         }
         else {
-            v_.push_back(atoi(s.substr(i-9, 9).c_str()));
+            v_.push_back(atoi(s.substr(i-LOGB, LOGB).c_str()));
         }
     }
     remove_leading_zeros();
@@ -335,7 +337,7 @@ BigInt raw_addition(BigInt n, const BigInt& k)
         if (i == a.size()) a.push_back (0);
         a[i] += carry + (i < b.size() ? b[i] : 0);
         carry = a[i] >= BASE;
-        if (carry)  a[i] -= BASE;
+        if (carry) a[i] -= BASE;
     }
 
     return n;
@@ -356,5 +358,6 @@ BigInt raw_subtraction(BigInt n, const BigInt& k)
 
     return n;
 }
+
 
 };
