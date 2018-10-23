@@ -17,5 +17,14 @@ int main()
     cout << BigInt("-12345678910") - BigInt("82373284723847") << endl;
     cout << BigInt("-12345678910") - BigInt("-82373284723847") << endl;
     cout << BigInt("12345678910") - BigInt("-82373284723847") << endl;
-    cout << BigInt("123").pow(BigInt("456")) << endl;
-}
+    cout << BigInt(123).pow(45) << endl;
+    cout << endl << endl; 
+    BigInt a, b;
+    a = 0, b = 1;
+    for (int i = 0; i < 100; ++i) {
+        BigInt temp = b;
+        b += a;
+        a = temp;
+    }
+    cout << a << endl;
+}   

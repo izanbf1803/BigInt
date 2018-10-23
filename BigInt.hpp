@@ -18,9 +18,14 @@ class BigInt
 {
 public:
     friend ostream& operator<<(ostream& out, const BigInt& n);
+    friend istream& operator>>(istream& in, BigInt& n);
     inline BigInt() { v_ = {0}; };
-    // BigInt(int64_t n);
+    template<typename T>
+        BigInt(T value) { *this = value; };
     BigInt(string s);
+    template<typename T>
+        inline BigInt& operator=(T new_val) { *this = BigInt(to_string(new_val)); return *this; };
+    inline BigInt& operator=(const char* new_val) { *this = BigInt(string(new_val)); return *this; };
     bool operator<(const BigInt& n) const;
     bool operator>(const BigInt& n) const;
     bool operator<=(const BigInt& n) const;
@@ -29,10 +34,6 @@ public:
     bool operator!=(const BigInt& n) const;
     BigInt operator+(const BigInt& n) const;
     BigInt operator-(const BigInt& n) const;
-    // BigInt operator<<(const BigInt& n) const;
-    // BigInt operator>>(const BigInt& n) const;
-    // BigInt operator<<(int64_t n) const;
-    // BigInt operator>>(int64_t n) const;
     BigInt operator*(const BigInt& n) const;
     BigInt operator*(DTYPE k) const;
     BigInt operator/(BigInt n) const;
@@ -41,10 +42,6 @@ public:
     inline BigInt operator%(DTYPE n) const { return *this - *this/n*n; };
     inline BigInt operator+=(const BigInt& n) { *this = *this + n; return *this; };
     inline BigInt operator-=(const BigInt& n) { *this = *this - n; return *this; };
-    // inline BigInt operator<<=(const BigInt& n) { *this = *this << n; return *this; };
-    // inline BigInt operator>>=(const BigInt& n) { *this = *this >> n; return *this; };
-    // inline BigInt operator<<=(int64_t n) { *this = *this << n; return *this; };
-    // inline BigInt operator>>=(int64_t n) { *this = *this >> n; return *this; };
     inline BigInt operator*=(const BigInt& n) { *this = *this * n; return *this; };
     inline BigInt operator*=(DTYPE n) { *this = *this * n; return *this; };
     inline BigInt operator/=(const BigInt& n) { *this = *this / n; return *this; };
@@ -53,23 +50,18 @@ public:
     inline BigInt operator%=(DTYPE n) { *this = *this % n; return *this; };
     inline DTYPE mod2() const { return v_.back() % 2; };
     void remove_leading_zeros();
-    // bool bit(int index) const;
-    // pair<BigInt,BigInt> div(const BigInt& n) const;
-    // inline BigInt pow(const BigInt& n) const { return this->pow(n.int64()); };
     BigInt pow(const BigInt& n) const;
     string str() const;
-    // int64_t int64() const;
 
     vector<DTYPE> v_; // Vector of bits storing digits of the number
     int8_t sign_ = +1;
 private:
-    // void print(ostream& out) const;
 };
 
 const vector<BigInt> BI = { 
-    BigInt("0"), BigInt("1"), BigInt("2"), BigInt("3"), 
-    BigInt("4"), BigInt("5"), BigInt("6"), BigInt("7"), 
-    BigInt("8"), BigInt("9"), BigInt("10"),  
+    BigInt(0), BigInt(1), BigInt(2), BigInt(3), 
+    BigInt(4), BigInt(5), BigInt(6), BigInt(7), 
+    BigInt(8), BigInt(9), BigInt(10),  
 };
 
 inline int ctoi(char c) { return c - '0'; }
@@ -89,22 +81,13 @@ ostream& operator<<(ostream& out, const BigInt& n)
     return out;
 }
 
-// BigInt::BigInt(int64_t n)
-// {
-//     if (n < 0) sign_ = -1;
-//     n = abs(n);
-//     int size = 0;
-//     int64_t k = n;
-//     while (k > 0) {
-//         ++size;
-//         k /= 2;
-//     }
-//     v_ = vector<DTYPE>(size, 0);
-//     for (int i = 0; n > 0; ++i) {
-//         v_[i] = n % 2;
-//         n /= 2;
-//     }   
-// }
+istream& operator>>(istream& in, BigInt& n)
+{
+    string str;
+    in >> str;
+    n = BigInt(str);
+    return in;
+}
 
 BigInt::BigInt(string s)
 {
@@ -123,21 +106,6 @@ BigInt::BigInt(string s)
     }
     remove_leading_zeros();
 }
-
-// BigInt::BigInt(const vector<DTYPE>& v, int8_t sign = +1)
-// { 
-//     v_ = v; 
-//     sign_ = sign;
-//     remove_leading_zeros();
-// }
-
-// void BigInt::print(ostream& out) const
-// {
-//     if (sign_ == -1) out << '-';
-//     for (int i = 0; i < v_.size(); ++i) {
-//         out << (int)v_[v_.size() - i - 1];
-//     }
-// }
 
 bool BigInt::operator<(const BigInt& n) const
 {
@@ -289,14 +257,14 @@ BigInt BigInt::operator/(BigInt k) const
     k.sign_ = +1;
 
     BigInt l = BI[0], r = n, q = BI[0];
-    while (r >= l) {
+    while (l <= r) {
         BigInt m = (l+r)/2;
         BigInt mk = m * k;
         if (mk > n) {
             r = m - BI[1];
         }
         else {
-            q = l;
+            q = m;
             l = m + BI[1];
         }
     }
@@ -325,145 +293,6 @@ BigInt BigInt::operator/(DTYPE k) const
 
     return n;
 }
-
-// BigInt BigInt::operator%(const BigInt& n) const
-// {
-//     assert( n != BI[0] );
-//     return div(n).second;
-// }
-
-// BigInt BigInt::operator/(const BigInt& n) const
-// {
-//     assert( n != BI[0] );
-//     return div(n).first;
-// }
-
-// BigInt BigInt::operator<<(int64_t n) const 
-// {
-//     BigInt r = *this;
-//     r.v_.insert(r.v_.begin(), abs(n), 0);
-//     r.remove_leading_zeros();
-//     return r;
-// }
-
-// BigInt BigInt::operator>>(int64_t n) const
-// {
-//     if (abs(n) >= this->v_.size()) return BI[0];
-
-//     BigInt r = *this;
-//     r.v_.erase(r.v_.begin(), r.v_.begin() + abs(n));
-//     return r;
-// }
-
-// BigInt BigInt::operator<<(const BigInt& n) const 
-// {
-//     return *this << n.int64();
-// }
-
-// BigInt BigInt::operator>>(const BigInt& n) const
-// {
-//     return *this >> n.int64(); 
-// }
-
-// BigInt BigInt::mul(const BigInt& n) const
-// {
-//     vector<DTYPE> r(v_.size() + n.v_.size(), 0);
-//     for (int i = 0; i < v_.size(); ++i) {
-//         int8_t carry = 0;
-//         for (int j = 0; j < n.v_.size(); ++j) {
-//             int8_t p = carry + (v_[i] & n.v_[j]) + r[i+j];
-//             carry = p >> 1;
-//             r[i+j] = p & 1;
-//         }
-//         r[i+n.v_.size()] = r[i+n.v_.size()] | carry;
-//     }
-//     BigInt x(r, sign_ * n.sign_);
-//     x.remove_leading_zeros();
-//     return x;
-// }
-
-// BigInt BigInt::pow(int64_t n) const
-// {
-//     assert( n >= 0 );
-//     if (n == 0) return BI[1];
-//     if (n == 1) return *this;
-//     BigInt x2 = this->mul(*this);
-//     if (n % 2 == 0) return x2.pow(n/2);
-//     return this->mul(x2.pow((n-1)/2));
-// }
-
-// // positive division:
-// pair<BigInt,BigInt> BigInt::div(const BigInt& n) const
-// {
-//     // chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-
-//     BigInt q = BI[0];
-//     BigInt r = *this;
-//     BigInt d = n;
-//     r.sign_ = d.sign_ = +1;
-//     int64_t k = 0;
-//     while (d <= r) {
-//         ++k;
-//         d = d << 1;
-//     }
-//     while (k-- > 0) {
-//         d = d >> 1;
-//         if (d <= r) {
-//             r = r - d;
-//             q = (q << 1) + 1;
-//         }
-//         else {
-//             q = q << 1;
-//         }
-//     }
-
-//     // chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
-//     // auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
-//     // D(duration) << endl;
-
-//     return make_pair(q, r);
-// }
-
-// int64_t BigInt::int64() const
-// {
-//     assert( v_.size() <= 62 );
-//     int size = v_.size();
-//     int64_t r = v_[size-1];
-//     for (int i = 1; i < v_.size(); ++i) {
-//         r <<= 1;
-//         r += v_[size-1-i];
-//     }
-//     r *= sign_;
-//     return r;
-// }
-
-// string BigInt::str() const
-// {
-//     string res;
-//     res.reserve(v_.size()/3);
-//     BigInt n = *this;
-//     n.sign_ = +1;
-//     if (n == BI[0]) return "0";
-
-//     chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-
-//     while (n > BI[0]) {
-//         pair<BigInt, BigInt> q_r = n.div(BI[10]);
-//         res += '0' + q_r.second.int64();
-//         n = q_r.first;
-//     }
-
-//     if (this->sign_ == -1) res += '-';
-//     for (int i = 0; i < res.size()/2; ++i) {
-//         swap(res[i], res[res.size()-1-i]);
-//     }
-
-//     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
-//     auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
-//     D(duration) << endl;
-
-//     return res;
-// }
 
 void BigInt::remove_leading_zeros()
 {
